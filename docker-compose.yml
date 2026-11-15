@@ -1,0 +1,8 @@
+services:
+  frontend:
+    build: .
+    container_name: gestor-frontend
+    ports:
+      - "5173:80"
+    environment:
+      - VITE_API_URL=http://localhost:3000
