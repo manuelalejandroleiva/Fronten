@@ -52,7 +52,7 @@ export default function TareaCard({ tarea, onCambiarEstado, onEliminar }: TareaC
           className="flex-1 bg-slate-100 rounded-lg px-3 py-2 text-sm font-medium outline-none cursor-pointer"
         >
           <option value="pendiente">Pendiente</option>
-          <option value="en curso">En progreso</option>
+          <option value="en curso">En curso</option>
           <option value="hecha">Hecha</option>
         </select>
 

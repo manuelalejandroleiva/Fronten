@@ -86,7 +86,7 @@ export default function Editar() {
             <label className="text-sm font-bold text-slate-600">Estado</label>
             <select value={estado} onChange={(e) => setEstado(e.target.value as EstadoTarea)} className="w-full mt-1 bg-slate-100 rounded-lg px-3 py-2 outline-none cursor-pointer">
               <option value="pendiente">Pendiente</option>
-              <option value="en curso">En progreso</option>
+              <option value="en curso">En curso</option>
               <option value="hecha">Hecha</option>
             </select>
           </div>
