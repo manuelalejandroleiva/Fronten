@@ -5,7 +5,9 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 
 import { tareasApi } from '../api/tareas.api';
+
 import Home from './Home';
+import type { Tarea } from '../types/tareas';
 
 vi.mock('../api/tareas.api', () => ({
   tareasApi: {
@@ -13,7 +15,7 @@ vi.mock('../api/tareas.api', () => ({
   },
 }));
 
-const tareasMock = [
+const tareasMock: Tarea[] = [
   { id: 1, titulo: 'T1', estado: 'pendiente', responsable: 'Juan', descripcion: '' },
   { id: 2, titulo: 'T2', estado: 'hecha', responsable: 'Ana', descripcion: '' },
   { id: 3, titulo: 'T3', estado: 'pendiente', responsable: 'Pedro', descripcion: '' },
@@ -22,11 +24,9 @@ const tareasMock = [
 describe('ListaTareas - Filtrar por estado', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    // El mock ahora SÍ filtra, como haría tu backend:
-    // si le piden 'pendiente', devuelve solo las pendientes
-    vi.mocked(tareasApi.getAll).mockImplementation(async (filtro?: string) => {
-      if (!filtro || filtro === 'Todas' || filtro === 'todas') return tareasMock as any;
-      return tareasMock.filter(t => t.estado.toLowerCase() === filtro.toLowerCase()) as any;
+    vi.mocked(tareasApi.getAll).mockImplementation(async (filtro?: string): Promise<Tarea[]> => {
+      if (!filtro || filtro === 'Todas') return tareasMock;
+      return tareasMock.filter((t) => t.estado.toLowerCase() === filtro.toLowerCase());
     });
   });
 

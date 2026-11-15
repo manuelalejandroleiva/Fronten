@@ -1,12 +1,7 @@
+import type { Tarea } from '../types/tareas';
 import { api } from './api';
 
-export interface Tarea {
-  id: number;
-  titulo: string;
-  descripcion?: string;
-  estado: 'pendiente' | 'en curso' | 'hecha';
-  responsable: string;
-}
+
 
 export const tareasApi = {
   getAll: (estado?: string) => api.get<Tarea[]>(`/tareas${estado ? `?estado=${estado}` : ''}`),
