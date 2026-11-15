@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { tareasApi } from '../api/tareas.api';
+import type { EstadoTarea } from '../types/tareas';
 
-import type { EstadoTarea, Tarea } from '../types/tareas';
 
 export default function Editar() {
   const { id } = useParams<{ id: string }>();
@@ -13,26 +13,34 @@ export default function Editar() {
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const cargar = useCallback(async () => {
-    if (!id) return;
-    setCargando(true);
-    setError(null);
-    try {
-      const tarea = await tareasApi.getById(Number(id));
-      setTitulo(tarea.titulo);
-      setResponsable(tarea.responsable);
-      setEstado(tarea.estado);
-    } catch {
-      setError('No se pudo cargar la tarea.');
-    } finally {
-      setCargando(false);
-    }
-  }, [id]);
+  const [intentos, setIntentos] = useState(0);
 
   useEffect(() => {
+    if (!id) return;
+    let cancelado = false;
+
+    const cargar = async () => {
+      setCargando(true);
+      setError(null);
+      try {
+        const tarea = await tareasApi.getById(Number(id));
+        if (!cancelado) {
+          setTitulo(tarea.titulo);
+          setResponsable(tarea.responsable);
+          setEstado(tarea.estado);
+        }
+      } catch {
+        if (!cancelado) setError('No se pudo cargar la tarea.');
+      } finally {
+        if (!cancelado) setCargando(false);
+      }
+    };
+
     cargar();
-  }, [cargar]);
+    return () => {
+      cancelado = true;
+    };
+  }, [id, intentos]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,7 +48,11 @@ export default function Editar() {
     setGuardando(true);
     setError(null);
     try {
-      await tareasApi.update(Number(id), { titulo: titulo.trim(), responsable: responsable.trim(), estado } as Tarea);
+      await tareasApi.update(Number(id), {
+        titulo: titulo.trim(),
+        responsable: responsable.trim(),
+        estado,
+      });
       navigate('/');
     } catch {
       setError('No se pudo guardar los cambios. Inténtalo de nuevo.');
@@ -67,7 +79,10 @@ export default function Editar() {
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4 flex justify-between items-center gap-4">
             <p className="text-sm text-red-700">😢 {error}</p>
-            <button onClick={cargar} className="bg-red-600 text-white px-3 py-1.5 rounded-lg text-sm font-bold shrink-0">
+            <button
+              onClick={() => setIntentos((prev) => prev + 1)}
+              className="bg-red-600 text-white px-3 py-1.5 rounded-lg text-sm font-bold shrink-0"
+            >
               Reintentar
             </button>
           </div>
@@ -76,21 +91,37 @@ export default function Editar() {
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-slate-200 p-5 flex flex-col gap-4">
           <div>
             <label className="text-sm font-bold text-slate-600">Título *</label>
-            <input value={titulo} onChange={(e) => setTitulo(e.target.value)} className="w-full mt-1 bg-slate-100 rounded-lg px-3 py-2 outline-none" />
+            <input
+              value={titulo}
+              onChange={(e) => setTitulo(e.target.value)}
+              className="w-full mt-1 bg-slate-100 rounded-lg px-3 py-2 outline-none"
+            />
           </div>
           <div>
             <label className="text-sm font-bold text-slate-600">Responsable *</label>
-            <input value={responsable} onChange={(e) => setResponsable(e.target.value)} className="w-full mt-1 bg-slate-100 rounded-lg px-3 py-2 outline-none" />
+            <input
+              value={responsable}
+              onChange={(e) => setResponsable(e.target.value)}
+              className="w-full mt-1 bg-slate-100 rounded-lg px-3 py-2 outline-none"
+            />
           </div>
           <div>
             <label className="text-sm font-bold text-slate-600">Estado</label>
-            <select value={estado} onChange={(e) => setEstado(e.target.value as EstadoTarea)} className="w-full mt-1 bg-slate-100 rounded-lg px-3 py-2 outline-none cursor-pointer">
+            <select
+              value={estado}
+              onChange={(e) => setEstado(e.target.value as EstadoTarea)}
+              className="w-full mt-1 bg-slate-100 rounded-lg px-3 py-2 outline-none cursor-pointer"
+            >
               <option value="pendiente">Pendiente</option>
-              <option value="en curso">En curso</option>
+              <option value="en curso">En progreso</option>
               <option value="hecha">Hecha</option>
             </select>
           </div>
-          <button type="submit" disabled={guardando} className="bg-indigo-600 text-white py-2.5 rounded-lg font-bold disabled:opacity-50">
+          <button
+            type="submit"
+            disabled={guardando}
+            className="bg-indigo-600 text-white py-2.5 rounded-lg font-bold disabled:opacity-50"
+          >
             {guardando ? 'Guardando...' : 'Guardar cambios'}
           </button>
         </form>
